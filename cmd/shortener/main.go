@@ -15,7 +15,7 @@ import (
 
 func main() {
 	logger := platform.NewLogger()
-	port := getenv("PORT", "8080")
+	port := getenv("PORT", "9090")
 
 	srv := &http.Server{
 		Addr:              ":" + port,

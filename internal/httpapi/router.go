@@ -10,7 +10,11 @@ import (
 func Router(logger *slog.Logger) http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /ping", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
 		writeJSON(w, http.StatusOK, map[string]any{
 			"status":    "ok",
 			"ts":        time.Now().Format(time.RFC3339),
@@ -18,6 +22,15 @@ func Router(logger *slog.Logger) http.Handler {
 		})
 	})
 
+	mux.HandleFunc("/health/ready", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{
+			"ready": "true",
+		})
+	})
 	return withLogging(logger, mux)
 
 }
