@@ -50,7 +50,7 @@ func Router(logger *slog.Logger, svc *service.ShortenerService) http.Handler {
 			return
 		}
 
-		short, err := svc.ShortenURL(payload.URL)
+		short, err := svc.ShortenURL(payload.URL, logger)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			writeJSON(w, http.StatusBadRequest, map[string]any{
@@ -76,7 +76,7 @@ func Router(logger *slog.Logger, svc *service.ShortenerService) http.Handler {
 			return
 		}
 
-		originalURL, err := svc.GetOriginalURL(shortURL)
+		originalURL, err := svc.GetOriginalURL(shortURL, logger)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			writeJSON(w, http.StatusNotFound, map[string]any{

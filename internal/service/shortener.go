@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/url"
 
 	"github.com/Ykio7614/URLShortener/internal/repository"
@@ -19,8 +20,9 @@ func NewShortenerService(repo *repository.MemoryRepo) *ShortenerService {
 	}
 }
 
-func (s *ShortenerService) ShortenURL(originalURL string) (string, error) {
+func (s *ShortenerService) ShortenURL(originalURL string, logger *slog.Logger) (string, error) {
 	if _, err := url.ParseRequestURI(originalURL); err != nil {
+		logger.Error("invalid URL", slog.String("url", originalURL), slog.Any("error", err))
 		return "", errors.New("invalid URL")
 	}
 
@@ -35,6 +37,6 @@ func generateShortURL(originalURL string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(originalURL)))[:6]
 }
 
-func (s *ShortenerService) GetOriginalURL(shortURL string) (string, error) {
-	return s.repo.Get(shortURL)
+func (s *ShortenerService) GetOriginalURL(shortURL string, logger *slog.Logger) (string, error) {
+	return s.repo.Get(shortURL, logger)
 }

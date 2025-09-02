@@ -1,11 +1,9 @@
 package repository
 
 import (
-	"errors"
+	"log/slog"
 	"sync"
 )
-
-var ErrNotFound = errors.New("not found")
 
 type MemoryRepo struct {
 	mu    sync.RWMutex
@@ -25,11 +23,12 @@ func (r *MemoryRepo) Save(shortURL, originalURL string) error {
 	return nil
 }
 
-func (r *MemoryRepo) Get(shortURL string) (string, error) {
+func (r *MemoryRepo) Get(shortURL string, logger *slog.Logger) (string, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	originalURL, exists := r.store[shortURL]
 	if !exists {
+
 		return "", ErrNotFound
 	}
 	return originalURL, nil

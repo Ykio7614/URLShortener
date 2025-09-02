@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 	"net/http"
 	"os"
@@ -13,11 +14,26 @@ import (
 	"github.com/Ykio7614/URLShortener/internal/platform"
 	"github.com/Ykio7614/URLShortener/internal/repository"
 	"github.com/Ykio7614/URLShortener/internal/service"
+	_ "github.com/lib/pq"
 )
 
 func main() {
 	logger := platform.NewLogger()
 	port := getenv("PORT", "9090")
+
+	dsn := "postgres://postgres:xxXX1234@localhost:5432/shortener?sslmode=disable"
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		logger.Error("failed to connect to database", slog.Any("error", err))
+		return
+	}
+	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		logger.Error("failed to ping database", slog.Any("error", err))
+		return
+	}
+
 	repo := repository.NewMemoryRepo()
 	svc := service.NewShortenerService(repo)
 
