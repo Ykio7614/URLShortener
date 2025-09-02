@@ -11,15 +11,19 @@ import (
 
 	"github.com/Ykio7614/URLShortener/internal/httpapi"
 	"github.com/Ykio7614/URLShortener/internal/platform"
+	"github.com/Ykio7614/URLShortener/internal/repository"
+	"github.com/Ykio7614/URLShortener/internal/service"
 )
 
 func main() {
 	logger := platform.NewLogger()
 	port := getenv("PORT", "9090")
+	repo := repository.NewMemoryRepo()
+	svc := service.NewShortenerService(repo)
 
 	srv := &http.Server{
 		Addr:              ":" + port,
-		Handler:           httpapi.Router(logger),
+		Handler:           httpapi.Router(logger, svc),
 		ReadHeaderTimeout: 5 * time.Second,
 		IdleTimeout:       30 * time.Second,
 	}
