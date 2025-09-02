@@ -10,13 +10,18 @@ import (
 	"github.com/Ykio7614/URLShortener/internal/repository"
 )
 
-type ShortenerService struct {
-	repo *repository.MemoryRepo
+type Shortener interface {
+	ShortenURL(originalURL string, logger *slog.Logger) (string, error)
+	GetOriginalURL(shortURL string, logger *slog.Logger) (string, error)
 }
 
-func NewShortenerService(repo *repository.MemoryRepo) *ShortenerService {
+type ShortenerService struct {
+	repo repository.Repo
+}
+
+func NewShortenerService(r repository.Repo) *ShortenerService {
 	return &ShortenerService{
-		repo: repo,
+		repo: r,
 	}
 }
 

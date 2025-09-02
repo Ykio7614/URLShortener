@@ -9,7 +9,7 @@ import (
 	"github.com/Ykio7614/URLShortener/internal/service"
 )
 
-func Router(logger *slog.Logger, svc *service.ShortenerService) http.Handler {
+func Router(logger *slog.Logger, svc service.Shortener) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
