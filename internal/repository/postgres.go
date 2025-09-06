@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"log/slog"
 	"time"
 )
 
@@ -21,7 +22,7 @@ func (r *PostgresRepo) Save(shortURL, originalURL string) error {
 	return err
 }
 
-func (r *PostgresRepo) Get(shortURL string) (string, error) {
+func (r *PostgresRepo) Get(shortURL string, logger *slog.Logger) (string, error) {
 	var originalURL string
 	err := r.db.QueryRow("SELECT original_url FROM urls WHERE short_url = $1", shortURL).Scan(&originalURL)
 	if err != nil {

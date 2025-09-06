@@ -5,36 +5,68 @@ import (
 	"database/sql"
 	"log/slog"
 	"net/http"
-	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/Ykio7614/URLShortener/internal/config"
 	"github.com/Ykio7614/URLShortener/internal/httpapi"
 	"github.com/Ykio7614/URLShortener/internal/platform"
 	"github.com/Ykio7614/URLShortener/internal/repository"
 	"github.com/Ykio7614/URLShortener/internal/service"
+	"github.com/golang-migrate/migrate/v4"
+
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 )
 
 func main() {
+
+	conf := config.LoadConfig()
 	logger := platform.NewLogger()
-	port := getenv("PORT", "9090")
+	port := conf.Port
+	var repo repository.Repo
+	logger.Info("Config", slog.String("ENV", conf.Env))
 
-	dsn := "postgres://postgres:xxXX1234@localhost:5432/shortener?sslmode=disable"
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		logger.Error("failed to connect to database", slog.Any("error", err))
-		return
+	if conf.Env == "test" {
+		repo = repository.NewMemoryRepo()
+	} else {
+		dsn := config.DSNbuilder(conf)
+		db, err := sql.Open("postgres", dsn)
+		if err != nil {
+			logger.Error("failed to connect to database", slog.Any("error", err))
+			return
+		}
+		defer db.Close()
+
+		if err := db.Ping(); err != nil {
+			logger.Error("failed to ping database", slog.Any("error", err))
+			return
+		}
+
+		driver, err := postgres.WithInstance(db, &postgres.Config{})
+		if err != nil {
+			logger.Error("failed to create migrate db instance", slog.Any("error", err))
+			return
+		}
+
+		m, err := migrate.NewWithDatabaseInstance(
+			"file://db/migrations",
+			"postgres", driver)
+		if err != nil {
+			logger.Error("failed to create migrate instance", slog.Any("error", err))
+			return
+		}
+
+		if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+			logger.Error("failed to run migrations", slog.Any("error", err))
+			return
+		}
+
+		repo = repository.NewPostgresRepo(db)
 	}
-	defer db.Close()
 
-	if err := db.Ping(); err != nil {
-		logger.Error("failed to ping database", slog.Any("error", err))
-		return
-	}
-
-	repo := repository.NewMemoryRepo()
 	svc := service.NewShortenerService(repo)
 
 	srv := &http.Server{
@@ -66,11 +98,4 @@ func main() {
 		logger.Info("server stopped")
 	}
 
-}
-
-func getenv(key, def string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return def
 }

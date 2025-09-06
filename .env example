@@ -1,0 +1,12 @@
+# Application port
+PORT=8080
+
+# Application environment (dev, prod, test)
+ENV=dev
+
+# postgress database
+DB_USER=postgres_username
+DB_PASSWORD=postgres_password
+DB_NAME=postgres_db_name
+DB_HOST=hostname_or_ip
+DB_PORT=5432 # default postgress port

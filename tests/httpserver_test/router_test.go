@@ -28,7 +28,7 @@ func TestShortenerAndResolv(t *testing.T) {
 	}
 	originalURL, err := json.Marshal(payload)
 	require.NoError(t, err)
-	resp, err := http.Post(srv.URL+"/shorten", "aplicateion/json", bytes.NewReader(originalURL))
+	resp, err := http.Post(srv.URL+"/shorten", "aplication/json", bytes.NewReader(originalURL))
 	require.NoError(t, err)
 	defer resp.Body.Close()
 

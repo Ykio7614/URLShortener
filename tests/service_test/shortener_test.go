@@ -27,7 +27,7 @@ func (m *mockRepository) Get(shortURL string, logger *slog.Logger) (string, erro
 }
 
 func TestShorterAndResolv(t *testing.T) {
-	repo := &mockRepository{}
+	repo := &mockRepository{make(map[string]string)}
 	svc := NewShortenerService(repo)
 
 	_, err := svc.GetOriginalURL("missing", nil)
