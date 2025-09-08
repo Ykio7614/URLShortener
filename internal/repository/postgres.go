@@ -18,13 +18,13 @@ func NewPostgresRepo(db *sql.DB) *PostgresRepo {
 }
 
 func (r *PostgresRepo) Save(shortURL, originalURL string) error {
-	_, err := r.db.Exec("INSERT INTO urls (short_url, original_url, created_at) VALUES ($1, $2, $3) ON CONFLICT (short) DO NOTHING", shortURL, originalURL, time.Now())
+	_, err := r.db.Exec("INSERT INTO links (short, original, created_at) VALUES ($1, $2, $3) ON CONFLICT (short) DO NOTHING", shortURL, originalURL, time.Now())
 	return err
 }
 
 func (r *PostgresRepo) Get(shortURL string, logger *slog.Logger) (string, error) {
 	var originalURL string
-	err := r.db.QueryRow("SELECT original_url FROM urls WHERE short_url = $1", shortURL).Scan(&originalURL)
+	err := r.db.QueryRow("SELECT original FROM links WHERE short = $1", shortURL).Scan(&originalURL)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", ErrNotFound
