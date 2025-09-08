@@ -2,13 +2,15 @@ package service
 
 import (
 	"crypto/md5"
+	"encoding/binary"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/url"
 
 	"github.com/Ykio7614/URLShortener/internal/repository"
 )
+
+const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 type Shortener interface {
 	ShortenURL(originalURL string, logger *slog.Logger) (string, error)
@@ -39,7 +41,34 @@ func (s *ShortenerService) ShortenURL(originalURL string, logger *slog.Logger) (
 }
 
 func generateShortURL(originalURL string) string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(originalURL)))[:6]
+	md5hash := md5.Sum([]byte(originalURL))
+
+	num := binary.BigEndian.Uint64(md5hash[:8])
+
+	shortURL := Base62Encode(int64(num))
+
+	if len(shortURL) > 6 {
+		shortURL = shortURL[:6]
+	}
+
+	return shortURL
+}
+
+func Base62Encode(num int64) string {
+	if num == 0 {
+		return string(alphabet[0])
+	}
+
+	result := ""
+	base := int64(len(alphabet))
+
+	for num > 0 {
+		remainder := num % base
+		result = string(alphabet[remainder]) + result
+		num = num / base
+	}
+
+	return result
 }
 
 func (s *ShortenerService) GetOriginalURL(shortURL string, logger *slog.Logger) (string, error) {
